@@ -16,6 +16,7 @@ RUN apt-get update && \
         wget \
         postgresql \
         net-tools \
+        redis \
         vim-tiny && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
