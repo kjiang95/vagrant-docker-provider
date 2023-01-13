@@ -1,22 +1,38 @@
-# Build with:
-# docker buildx build --platform linux/amd64,linux/arm64 --push --tag rofrano/vagrant-provider:debian .
-FROM debian:bullseye
-LABEL MAINTAINER="John Rofrano <rofrano@gmail.com>"
+FROM ubuntu:jammy
+LABEL MAINTAINER="Kevin Jiang"
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install packages needed for SSH and interactive OS
 RUN apt-get update && \
+    yes | unminimize && \
     apt-get -y install \
+        openjdk-8-jdk \
         openssh-server \
         passwd \
         sudo \
         man-db \
         curl \
         wget \
+        postgresql \
+        net-tools \
         vim-tiny && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN echo "host all all 0.0.0.0/0 trust" >> /etc/postgresql/14/main/pg_hba.conf && \
+    echo "listen_addresses = '*'" >> /etc/postgresql/14/main/postgresql.conf && \
+    sudo service postgresql restart
+
+RUN wget https://dlcdn.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp && \
+    sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt && \
+    sudo ln -s /opt/apache-maven-3.6.3 /opt/maven
+
+
+RUN export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-arm64/ && \
+    export M2_HOME=/opt/maven && \
+    export MAVEN_HOME=/opt/maven && \
+    export PATH=${M2_HOME}/bin:${PATH} && \
 
 # Enable systemd (from Matthew Warman's mcwarman/vagrant-provider)
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
@@ -26,8 +42,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
     rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
     rm -f /lib/systemd/system/basic.target.wants/*; \
-    rm -f /lib/systemd/system/anaconda.target.wants/*; \
-    ln -s /lib/systemd/systemd /usr/sbin/init;
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
 
 # Enable ssh for vagrant
 RUN systemctl enable ssh.service; 

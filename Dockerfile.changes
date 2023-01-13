@@ -1,5 +1,5 @@
-FROM ubuntu:jammy
-LABEL MAINTAINER="John Rofrano <rofrano@gmail.com>"
+FROM ubuntu:bionic
+LABEL MAINTAINER="Kevin Jiang"
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -13,6 +13,8 @@ RUN apt-get update && \
         man-db \
         curl \
         wget \
+        net-tools \
+        postgresql \
         vim-tiny && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
