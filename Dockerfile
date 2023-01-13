@@ -20,19 +20,8 @@ RUN apt-get update && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN echo "host all all 0.0.0.0/0 trust" >> /etc/postgresql/14/main/pg_hba.conf && \
-    echo "listen_addresses = '*'" >> /etc/postgresql/14/main/postgresql.conf && \
-    sudo service postgresql restart
-
 RUN wget https://dlcdn.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp && \
-    sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt && \
-    sudo ln -s /opt/apache-maven-3.6.3 /opt/maven
-
-
-RUN export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-arm64/ && \
-    export M2_HOME=/opt/maven && \
-    export MAVEN_HOME=/opt/maven && \
-    export PATH=${M2_HOME}/bin:${PATH} && \
+    sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt
 
 # Enable systemd (from Matthew Warman's mcwarman/vagrant-provider)
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
@@ -60,6 +49,15 @@ RUN mkdir -p /home/vagrant/.ssh; \
 ADD https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub /home/vagrant/.ssh/authorized_keys
 RUN chmod 600 /home/vagrant/.ssh/authorized_keys; \
     chown -R vagrant:vagrant /home/vagrant/.ssh
+
+RUN sudo echo 'export M2_HOME=/opt/apache-maven-3.6.3' >> ~/.bashrc && \
+    sudo echo 'export PATH=${M2_HOME}/bin:${PATH}' >> ~/.bashrc && \
+    sudo echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-arm64' >> ~/.bashrc
+
+RUN sudo echo "host    all             all             0.0.0.0/0               trust" >> /etc/postgresql/14/main/pg_hba.conf && \
+    sudo echo "listen_addresses = '*'" >> /etc/postgresql/14/main/postgresql.conf && \
+    sudo service postgresql restart
+    # sudo -i -u postgres
 
 # Run the init daemon
 VOLUME [ "/sys/fs/cgroup" ]

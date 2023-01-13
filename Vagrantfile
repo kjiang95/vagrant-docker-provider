@@ -2,6 +2,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.hostname = "ubuntu-dev"
   config.vm.synced_folder "/Users/blueprint/kevinjiang-bpoms", "/kevinjiang-bpoms", docker_consistency: "cached"
+  config.vm.network :forwarded_port, host: 5432, guest: 5432
   
   config.vm.define "docker"  do |docker|
 
